@@ -3,7 +3,8 @@
 #include <iostream>
 #include <memory>
 
-struct AABB;
+#include "AABB.h"
+
 template <typename T>
 class QuadNode
 {

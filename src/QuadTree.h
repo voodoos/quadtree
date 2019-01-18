@@ -2,22 +2,11 @@
 #include <memory>
 #include <string>
 #include <sstream>
+
+#include "AABB.h"
 #include "QuadLeaf.h"
 
-struct AABB {
-	///<summary>
-	/// <code>
-	///   O(x,y) ---w-----o
-	///      |            |
-	///      |            |
-	///      h            h
-	///      |            |
-	///      |            |
-	///      o -----w-----o
-	/// </code>
-	///</summary>
-	int x, y, w, h;
-};
+
 
 template <typename T, int MaxElts = 4, int MaxDepth = 10>
 class QuadTree
