@@ -1,13 +1,12 @@
 #pragma once
 
 #include "QuadTree.h"
-
-template <typename T, int MaxElts, int MaxDepth>
-class QuadTree<T, MaxElts, MaxDepth>::QuadVal
+/*
+template <typename T>
+class QuadVal
 {
 private:
 	T value;
-	AABB box;
 	QuadTree<T, MaxElts, MaxDepth>::QuadNode& parent;
 
 public:
@@ -33,3 +32,4 @@ const AABB& QuadTree<T, MaxElts, MaxDepth>::QuadVal::getBox() const
 {
 	return box;
 }
+*/
