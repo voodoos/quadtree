@@ -26,5 +26,5 @@ public:
 	int get_h() const;
 	std::string toString() const;
 
-
+	bool is_in(const AABB&) const;
 };

@@ -26,9 +26,7 @@ int main() {
 
 	public:
 		TestItem(int i, AABB b)
-			: QuadValModel{ b }, i{
-			i
-		}{}
+			: QuadValModel{ b }, i{ i }{}
 		TestItem(int i, int x, int y, int w, int h)
 			: TestItem{ i, AABB {x,y,w,h} } {}
 
@@ -37,8 +35,18 @@ int main() {
 		};
 	};
 
-	QuadTree<TestItem> qt{ 500, 500 };
+	QuadTree<TestItem, 3> qt{ 500, 500 };
 	cout << qt.toString() << endl;
-	qt.insert(make_unique<TestItem>(4, AABB{ 10,10,10,10 }));
+	qt.insert(make_unique<TestItem>(0, AABB{ 50,50,500,500 }));
+	qt.insert(make_unique<TestItem>(0, AABB{ 50,50,500,500 }));
+	qt.insert(make_unique<TestItem>(0, AABB{ 50,50,500,500 }));
+	qt.insert(make_unique<TestItem>(0, AABB{ 50,50,500,500 }));
+	qt.insert(make_unique<TestItem>(0, AABB{ 50,50,500,500 }));
+	qt.insert(make_unique<TestItem>(0, AABB{ 50,50,500,500 }));
+	qt.insert(make_unique<TestItem>(1, AABB{ 10,10,10,10 }));
+	qt.insert(make_unique<TestItem>(2, AABB{ 100,10,10,10 }));
+	qt.insert(make_unique<TestItem>(3, AABB{ 10,100,10,10 }));
+	qt.insert(make_unique<TestItem>(4, AABB{ 300,300,10,10 }));
+	qt.insert(make_unique<TestItem>(5, AABB{ 300,10,10,10 }));
 	cout << qt.toString() << endl;
 }

@@ -38,6 +38,7 @@ public:
 template <typename T, int MaxElts, int MaxDepth>
 class QuadTree<T, MaxElts, MaxDepth>::QuadNode
 {
+	using eptr = std::unique_ptr<T>;
 private:
 	int max_elements;
 	int max_depth;
@@ -48,11 +49,11 @@ private:
 
 	/// A node without children is a leaf
 	std::forward_list <QuadNode> children{};
-	std::forward_list <std::unique_ptr<T>> values{};
+	std::forward_list <eptr> values{};
 	short counter = 0;
 
 public:
-	QuadNode(AABB);
+	QuadNode(AABB, int = 0);
 	virtual ~QuadNode();
 
 	int countChildren() const;
@@ -63,12 +64,17 @@ public:
 
 	QuadNode(const QuadNode&) = delete;
 	QuadNode& operator=(const QuadNode&) = default;
+
+private:
+	void  force_insert(eptr elt);
+	void  dispatch(eptr elt);
+	void  split_and_insert(eptr elt = nullptr);
 };
 using namespace std;
 using namespace std::literals::string_literals;
 
 template <typename T, int ME, int MD>
-QuadTree<T, ME, MD>::QuadNode::QuadNode(AABB b) : box{ b }
+QuadTree<T, ME, MD>::QuadNode::QuadNode(AABB b, int d) : box{ b }, depth{ d }
 {
 }
 
@@ -91,13 +97,17 @@ bool QuadTree<T, ME, MD>::QuadNode::isLeaf() const
 
 
 template <typename T, int ME, int MD>
-void QuadTree<T, ME, MD>::QuadNode::insert(std::unique_ptr<T> elt)
+void QuadTree<T, ME, MD>::QuadNode::insert(eptr elt)
 {
 	DEBUG("Inserting " + elt->toString() + "\n");
-	if (counter < ME)
-		values.emplace_front(std::move(elt));
+	if (counter < ME) {
+		force_insert(std::move(elt));
+		DEBUG("Elt " + to_string(counter) + "/" + to_string(ME) + ".\n");
+	}
 	else {
-		AABB elt_box = elt->getBox();
+		// Split if needed
+		split_and_insert(std::move(elt));
+
 	}
 	DEBUG("End of insertion\n");
 }
@@ -119,7 +129,75 @@ string QuadTree<T, ME, MD>::QuadNode::toString(int indent) const {
 	string schild = ""s;
 	for (auto& child : children)
 		schild += in() + child.toString(indent + 1) + "\n"s;
+
 	return "Node"s + (isLeaf() ? "(leaf)"s : ""s) + ", box"s + box.toString() + ", vals{"s + vals + "}"s + "\n"s + schild;
+}
+
+template <typename T, int ME, int MD>
+void QuadTree<T, ME, MD>::QuadNode::force_insert(eptr elt)
+{
+	values.emplace_front(std::move(elt));
+	counter++;
+}
+template <typename T, int ME, int MD>
+void QuadTree<T, ME, MD>::QuadNode::dispatch(eptr elt)
+{
+	AABB box = elt->getBox();
+
+	// Could be optimized
+	for (auto& child : children)
+		if (box.is_in(child.box)) {
+			child.insert(std::move(elt));
+			counter--;
+			break;
+		}
+
+	if (elt) {
+		DEBUG("Element not fitting, inserted in parent\n");
+		force_insert(std::move(elt));
+	}
+}
+
+template <typename T, int ME, int MD>
+void QuadTree<T, ME, MD>::QuadNode::split_and_insert(eptr elt)
+{
+	// Only split leafs
+	if (isLeaf()) {
+		DEBUG("Splitting");
+		int x = box.get_x(), y = box.get_y();
+		int w2 = box.get_w() / 2, h2 = box.get_h() / 2;
+		int w2r = box.get_w() % 2, h2r = box.get_w() % 2;
+
+		// The four quadrants
+		children.emplace_front(
+			AABB{ x + w2 + w2r, y + h2 + h2r, w2, h2 },
+			depth + 1
+		);
+		children.emplace_front(
+			AABB{ x, y + h2 + h2r, w2 + w2r, h2 },
+			depth + 1
+		);
+		children.emplace_front(
+			AABB{ x + w2 + w2r, y, w2, h2 + h2r },
+			depth + 1
+		);
+		children.emplace_front(
+			AABB{ x, y, w2 + w2r, h2 + h2r },
+			depth + 1
+		);
+
+		// We try to dispatch elements from the list
+		// todo : optimization : we should not move around things staying in the list afterall...
+		for (auto& elt : values)
+			dispatch(std::move(elt));
+
+		// Elements succesfully dispatched will leave a nullptr
+		values.remove(nullptr);
+	}
+
+	if (elt) {
+		dispatch(std::move(elt));
+	}
 }
 
 
