@@ -1,11 +1,10 @@
 #pragma once
+#include <iostream>
 #include <memory>
 #include <string>
 #include <sstream>
 
-#include "AABB.h"
-#include "QuadLeaf.h"
-
+#include "QuadNode.h"
 
 
 template <typename T, int MaxElts = 4, int MaxDepth = 10>
@@ -54,5 +53,6 @@ string QuadTree<T, ME, MD>::toString() const {
 	ostringstream  ss;
 	ss << "Max elements per node: " << ME << endl;
 	ss << "Max depth: " << MD << endl;
+    ss << root << endl;
 	return ss.str();
 }
