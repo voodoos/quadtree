@@ -3,8 +3,7 @@
 
 using namespace std::literals::string_literals;
 
-struct AABB {
-public:
+class AABB {
 	///<summary>
 	/// <code>
 	///   O(x,y) ---w-----o
@@ -18,5 +17,14 @@ public:
 	///</summary>
 	int x, y, w, h;
 
+public:
+	AABB();
+	AABB(int, int, int, int);
+	int get_x() const;
+	int get_y() const;
+	int get_w() const;
+	int get_h() const;
 	std::string toString() const;
+
+
 };

@@ -11,6 +11,8 @@ private:
 public:
 	QuadValModel() = default;
 	QuadValModel(AABB);
+	QuadValModel(const QuadValModel&) = delete;
+	QuadValModel& operator=(const QuadValModel&) = delete;
 	virtual ~QuadValModel() = default;
 
 	const AABB& getBox() const;

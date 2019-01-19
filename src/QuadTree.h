@@ -26,7 +26,7 @@ public:
 	QuadTree(int, int);
 	virtual ~QuadTree();
 
-	void insert(T* elt);
+	void insert(std::unique_ptr<T> elt);
 
 	std::string toString() const;
 };
@@ -58,7 +58,7 @@ public:
 	int countChildren() const;
 	bool isLeaf() const;
 
-	void insert(T* elt);
+	void insert(std::unique_ptr<T> elt);
 	std::string toString(int indent = 0) const;
 
 	QuadNode(const QuadNode&) = delete;
@@ -91,12 +91,14 @@ bool QuadTree<T, ME, MD>::QuadNode::isLeaf() const
 
 
 template <typename T, int ME, int MD>
-void QuadTree<T, ME, MD>::QuadNode::insert(T* elt)
+void QuadTree<T, ME, MD>::QuadNode::insert(std::unique_ptr<T> elt)
 {
 	DEBUG("Inserting " + elt->toString() + "\n");
 	if (counter < ME)
-		values.emplace_front(elt);
-	//AABB elt_box = elt.getBox();
+		values.emplace_front(std::move(elt));
+	else {
+		AABB elt_box = elt->getBox();
+	}
 	DEBUG("End of insertion\n");
 }
 
@@ -137,7 +139,7 @@ QuadTree<T, ME, MD>::~QuadTree()
 }
 
 template <typename T, int ME, int MD>
-void QuadTree<T, ME, MD>::insert(T* elt) {
+void QuadTree<T, ME, MD>::insert(std::unique_ptr<T> elt) {
 	root.insert(std::move(elt));
 }
 

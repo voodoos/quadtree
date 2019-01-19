@@ -1,6 +1,7 @@
 #include "pch.h"
 #include <forward_list>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -22,33 +23,22 @@ int main() {
 	class TestItem : public QuadValModel {
 	private:
 		int i;
-		AABB box;
 
 	public:
 		TestItem(int i, AABB b)
-			: i{ i }, box{ b } {}
+			: QuadValModel{ b }, i{
+			i
+		}{}
 		TestItem(int i, int x, int y, int w, int h)
-			: i{ i }, box{ AABB {x,y,w,h} } {}
-		const AABB& getBox() const {
-			return box;
-		}
+			: TestItem{ i, AABB {x,y,w,h} } {}
 
 		std::string toString() const {
-			return to_string(i) + box.toString();
+			return to_string(i) + getBox().toString();
 		};
-
-		TestItem(const TestItem& t) {
-			cout << "/!\ OUPS, copy of " + t.toString();
-		}
-
-		TestItem& operator=(const TestItem& t) {
-			cout << "/!\ OUPS, copy of " + t.toString();
-			return TestItem(t);
-		}
 	};
 
 	QuadTree<TestItem> qt{ 500, 500 };
 	cout << qt.toString() << endl;
-	qt.insert(new TestItem{ 4, AABB{10,10,10,10} });
+	qt.insert(make_unique<TestItem>(4, AABB{ 10,10,10,10 }));
 	cout << qt.toString() << endl;
 }
