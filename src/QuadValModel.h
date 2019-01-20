@@ -15,6 +15,6 @@ public:
 	QuadValModel& operator=(const QuadValModel&) = delete;
 	virtual ~QuadValModel() = default;
 
-	const AABB& getBox() const;
+	const AABB& get_box() const;
 	virtual std::string toString() const = 0;
 };

@@ -7,6 +7,6 @@ QuadValModel::QuadValModel(AABB b)
 	: box{ b } {}
 
 
-const AABB& QuadValModel::getBox() const {
+const AABB& QuadValModel::get_box() const {
 	return box;
 }

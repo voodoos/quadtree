@@ -28,6 +28,7 @@ public:
 	QuadTree(int, int);
 	virtual ~QuadTree();
 
+	const QuadNode& get_root() const;
 	void insert(std::unique_ptr<T> elt);
 
 	std::string toString() const;
@@ -60,6 +61,9 @@ public:
 
 	int countChildren() const;
 	bool isLeaf() const;
+	const AABB& get_box() const;
+	const std::forward_list <QuadNode>& get_children() const;
+	const std::forward_list <eptr>& get_values() const;
 
 	void insert(std::unique_ptr<T> elt);
 	std::string toString(int indent = 0) const;
@@ -69,7 +73,7 @@ public:
 
 private:
 	void  force_insert(eptr elt);
-	void  dispatch(eptr elt);
+	void  dispatch(eptr& elt);
 	void  split_and_insert(eptr elt = nullptr);
 };
 using namespace std;
@@ -97,12 +101,30 @@ bool QuadTree<T, ME, MD>::QuadNode::isLeaf() const
 	return children.begin() == children.end();
 }
 
+template <typename T, int ME, int MD>
+const AABB & QuadTree<T, ME, MD>::QuadNode::get_box() const
+{
+	return box;
+}
+
+template <typename T, int ME, int MD>
+const std::forward_list<typename QuadTree<T, ME, MD>::QuadNode>& QuadTree<T, ME, MD>::QuadNode::get_children() const
+{
+	return children;
+}
+
+template <typename T, int ME, int MD>
+const std::forward_list<typename QuadTree<T, ME, MD>::QuadNode::eptr>& QuadTree<T, ME, MD>::QuadNode::get_values() const
+{
+	return values;
+}
+
 
 template <typename T, int ME, int MD>
 void QuadTree<T, ME, MD>::QuadNode::insert(eptr elt)
 {
 	DEBUG("Inserting " + elt->toString() + "\n");
-	if (counter < ME) {
+	if (isLeaf() && counter < ME) {
 		force_insert(std::move(elt));
 		DEBUG("Elt " + to_string(counter) + "/" + to_string(ME) + ".\n");
 	}
@@ -142,9 +164,9 @@ void QuadTree<T, ME, MD>::QuadNode::force_insert(eptr elt)
 	counter++;
 }
 template <typename T, int ME, int MD>
-void QuadTree<T, ME, MD>::QuadNode::dispatch(eptr elt)
+void QuadTree<T, ME, MD>::QuadNode::dispatch(eptr& elt)
 {
-	AABB box = elt->getBox();
+	AABB box = elt->get_box();
 
 	// Could be optimized
 	for (auto& child : children)
@@ -156,7 +178,7 @@ void QuadTree<T, ME, MD>::QuadNode::dispatch(eptr elt)
 
 	if (elt) {
 		DEBUG("Element not fitting, inserted in parent\n");
-		force_insert(std::move(elt));
+		//force_insert(std::move(elt));
 	}
 }
 
@@ -191,14 +213,14 @@ void QuadTree<T, ME, MD>::QuadNode::split_and_insert(eptr elt)
 		// We try to dispatch elements from the list
 		// todo : optimization : we should not move around things staying in the list afterall...
 		for (auto& elt : values)
-			dispatch(std::move(elt));
+			dispatch(elt);
 
 		// Elements succesfully dispatched will leave a nullptr
 		values.remove(nullptr);
 	}
 
 	if (elt) {
-		dispatch(std::move(elt));
+		dispatch(elt);
 	}
 }
 
@@ -216,6 +238,12 @@ inline QuadTree<T, MaxElts, MaxDepth>::QuadTree(int w, int h)
 template <typename T, int ME, int MD>
 QuadTree<T, ME, MD>::~QuadTree()
 {
+}
+
+template<typename T, int ME, int MD>
+const typename QuadTree<T, ME, MD>::QuadNode & QuadTree<T, ME, MD>::get_root() const
+{
+	return root;
 }
 
 template <typename T, int ME, int MD>
