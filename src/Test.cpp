@@ -10,7 +10,7 @@
 
 using namespace std;
 
-int main() {
+int main(int argc, char *argv[]) {
 
 	std::cout << "Hello World!\n";
 
@@ -49,4 +49,6 @@ int main() {
 	qt.insert(make_unique<TestItem>(4, AABB{ 300,300,10,10 }));
 	qt.insert(make_unique<TestItem>(5, AABB{ 300,10,10,10 }));
 	cout << qt.toString() << endl;
+
+	return 0;
 }

@@ -4,6 +4,8 @@
 #include <string>
 #include <sstream>
 
+#include <SDL.h>
+
 #include "QuadValModel.h"
 #include "utils.h"
 
