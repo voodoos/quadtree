@@ -11,10 +11,10 @@ class QuadTree<T, ME, MD>::QuadVal
 {
 private:
 	AABB box;
-	//typename QuadNode& host;
+	QuadNode* host = nullptr;
 public:
 	QuadVal() = default;
-	QuadVal(/*T&,*/ AABB);
+	QuadVal(AABB);
 
 	QuadVal(const QuadVal&) = delete;
 	QuadVal& operator=(const QuadVal&) = delete;
@@ -28,8 +28,8 @@ using namespace std;
 
 
 template <typename T, int ME, int MD>
-QuadTree<T, ME, MD>::QuadVal::QuadVal(/*T& v,*/ AABB b)
-	: /*val{ v }, */box{
+QuadTree<T, ME, MD>::QuadVal::QuadVal(AABB b)
+	: box{
 	b
 } {}
 

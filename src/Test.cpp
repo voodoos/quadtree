@@ -14,12 +14,14 @@ using namespace std;
 
 template<int ME, int MD>
 class TestItem : public QuadTree<TestItem<ME, MD>, ME, MD>::QuadVal {
+	using node = typename QuadTree<TestItem<ME, MD>, ME, MD>::QuadNode;
+	using val = typename QuadTree<TestItem<ME, MD>, ME, MD>::QuadVal;
 private:
 	int i;
 
 public:
 	TestItem(int i, AABB b)
-		: QuadTree<TestItem, ME, MD>::QuadVal{ b }, i{ i }{}
+		: i{ i } {}
 	TestItem(int i, int x, int y, int w, int h)
 		: TestItem{ i, AABB {x,y,w,h} } {}
 
