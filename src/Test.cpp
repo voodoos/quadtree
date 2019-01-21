@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "QuadTree.h"
+#include "SDL.h"
 
 using namespace std;
 
