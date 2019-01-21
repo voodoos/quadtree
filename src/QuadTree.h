@@ -31,22 +31,20 @@ public:
 	virtual ~QuadTree();
 
 	const QuadNode& get_root() const;
-	void insert(std::unique_ptr<T> elt);
+	void insert(T&& elt);
 
 	std::string toString() const;
 };
 
-//////
-/// Nested class QuadNode
-//////
+/////////////////////////////
+/// Nested class QuadNode ///
+/////////////////////////////
 
 template <typename T, int MaxElts, int MaxDepth>
 class QuadTree<T, MaxElts, MaxDepth>::QuadNode
 {
-	using eptr = std::unique_ptr<T>;
+	using val_t = QuadVal;
 private:
-	int max_elements;
-	int max_depth;
 	int depth;
 
 	/// The node's bounding box
@@ -54,30 +52,36 @@ private:
 
 	/// A node without children is a leaf
 	std::forward_list <QuadNode> children{};
-	std::forward_list <eptr> values{};
+	std::forward_list <QuadVal> values{};
 	short counter = 0;
 
 public:
 	QuadNode(AABB, int = 0);
 	virtual ~QuadNode();
+    
+    QuadNode(const QuadNode&) = delete;
+    QuadNode& operator=(const QuadNode&) = delete;
 
 	int countChildren() const;
 	bool isLeaf() const;
 	const AABB& get_box() const;
 	const std::forward_list <QuadNode>& get_children() const;
-	const std::forward_list <eptr>& get_values() const;
+	const std::forward_list <val_t>& get_values() const;
 
-	void insert(eptr elt);
 	std::string toString(int indent = 0) const;
 
-	QuadNode(const QuadNode&) = delete;
-	QuadNode& operator=(const QuadNode&) = default;
+    void insert(T&& elt);
 
 private:
-	void  force_insert(eptr elt);
-	void  dispatch(eptr& elt);
-	void  split_and_insert(eptr elt = nullptr);
+	void  force_insert(T&& elt);
+	void  dispatch(T&& elt);
+    //void  dispatch(val_t& elt);
+	void  split_and_insert(T&& elt);
 };
+
+////////////////////////////
+/// QuadNode Definitions ///
+////////////////////////////
 using namespace std;
 using namespace std::literals::string_literals;
 
@@ -116,34 +120,18 @@ const std::forward_list<typename QuadTree<T, ME, MD>::QuadNode>& QuadTree<T, ME,
 }
 
 template <typename T, int ME, int MD>
-const std::forward_list<typename QuadTree<T, ME, MD>::QuadNode::eptr>& QuadTree<T, ME, MD>::QuadNode::get_values() const
+const std::forward_list<typename QuadTree<T, ME, MD>::QuadNode::val_t>& QuadTree<T, ME, MD>::QuadNode::get_values() const
 {
 	return values;
 }
 
-
 template <typename T, int ME, int MD>
-void QuadTree<T, ME, MD>::QuadNode::insert(eptr elt)
+string QuadTree<T, ME, MD>::QuadNode::toString(int indent) const
 {
-	DEBUG("Inserting " + elt->toString() + "\n");
-	if (isLeaf() && counter < ME) {
-		force_insert(std::move(elt));
-		DEBUG("Elt " + to_string(counter) + "/" + to_string(ME) + ".\n");
-	}
-	else {
-		// Split if needed
-		split_and_insert(std::move(elt));
-
-	}
-	DEBUG("End of insertion\n");
-}
-
-template <typename T, int ME, int MD>
-string QuadTree<T, ME, MD>::QuadNode::toString(int indent) const {
 	string vals = ""s;
 	for (auto& val : values) {
 		if (vals != ""s) vals += ", "s;
-		vals += val->toString();
+		vals += val.toString();
 	}
 
 	// Showing child nodes with indent
@@ -160,36 +148,57 @@ string QuadTree<T, ME, MD>::QuadNode::toString(int indent) const {
 }
 
 template <typename T, int ME, int MD>
-void QuadTree<T, ME, MD>::QuadNode::force_insert(eptr elt)
+void QuadTree<T, ME, MD>::QuadNode::insert(T&& elt)
+{
+    DEBUG("Insert " + elt.toString() + "\n");
+    if (isLeaf() && counter < ME) {
+        force_insert(std::forward<T>(elt));
+    }
+    else {
+        // Split if needed
+        split_and_insert(std::forward<T>(elt));
+        
+    }
+    DEBUG("End insert " + elt.toString() + "\n");
+}
+
+template <typename T, int ME, int MD>
+void QuadTree<T, ME, MD>::QuadNode::force_insert(T&& elt)
 {
 	values.emplace_front(std::move(elt));
+    //values.push_front(QuadVal(std::forward<T>(elt)));
 	counter++;
 }
-template <typename T, int ME, int MD>
-void QuadTree<T, ME, MD>::QuadNode::dispatch(eptr& elt)
-{
-	AABB box = elt->get_box();
 
+template <typename T, int ME, int MD>
+void QuadTree<T, ME, MD>::QuadNode::dispatch(T&& elt)
+{
+    DEBUG("Dispatch " + elt.toString() + "\n");
+	AABB box = elt.get_box();
+
+    bool forwarded = false;
 	// Could be optimized
 	for (auto& child : children)
 		if (box.is_in(child.box)) {
-			child.insert(std::move(elt));
+			child.insert(std::forward<T>(elt));
 			counter--;
+            forwarded = true;
 			break;
 		}
 
-	if (elt) {
+	if (!forwarded) {
 		DEBUG("Element not fitting, inserted in parent\n");
 		//force_insert(std::move(elt));
 	}
+    DEBUG("End dispatch " + elt.toString() + "\n");
 }
 
 template <typename T, int ME, int MD>
-void QuadTree<T, ME, MD>::QuadNode::split_and_insert(eptr elt)
+void QuadTree<T, ME, MD>::QuadNode::split_and_insert(T&& elt)
 {
 	// Only split leafs
 	if (isLeaf()) {
-		DEBUG("Splitting");
+		DEBUG("Splitting.\n");
 		int x = box.get_x(), y = box.get_y();
 		int w2 = box.get_w() / 2, h2 = box.get_h() / 2;
 		int w2r = box.get_w() % 2, h2r = box.get_w() % 2;
@@ -214,16 +223,15 @@ void QuadTree<T, ME, MD>::QuadNode::split_and_insert(eptr elt)
 
 		// We try to dispatch elements from the list
 		// todo : optimization : we should not move around things staying in the list afterall...
+            
 		for (auto& elt : values)
-			dispatch(elt);
+            dispatch(std::forward<T>(elt.get_val()));
 
 		// Elements succesfully dispatched will leave a nullptr
-		values.remove(nullptr);
+		//values.remove(nullptr);
 	}
-
-	if (elt) {
-		dispatch(elt);
-	}
+    
+    dispatch(std::forward<T>(elt));
 }
 
 
@@ -249,8 +257,9 @@ const typename QuadTree<T, ME, MD>::QuadNode & QuadTree<T, ME, MD>::get_root() c
 }
 
 template <typename T, int ME, int MD>
-void QuadTree<T, ME, MD>::insert(std::unique_ptr<T> elt) {
-	root.insert(std::move(elt));
+void QuadTree<T, ME, MD>::insert(T&& elt) {
+    // Perfect forwarding
+	root.insert(std::forward<T>(elt));
 }
 
 template <typename T, int ME, int MD>

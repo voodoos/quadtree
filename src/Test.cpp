@@ -14,23 +14,51 @@
 
 using namespace std;
 
-template<int ME, int MD>
-class TestItem : public QuadTree<TestItem<ME, MD>, ME, MD>::QuadVal {
-	using node = typename QuadTree<TestItem<ME, MD>, ME, MD>::QuadNode;
-	using val = typename QuadTree<TestItem<ME, MD>, ME, MD>::QuadVal;
-private:
+
+class TestVal {
+public:
 	int i;
+    AABB box;
 
 public:
-	TestItem(int i, AABB b)
-    : QuadTree<TestItem<ME, MD>, ME, MD>::QuadVal{b}, i{ i } {}
-	TestItem(int i, int x, int y, int w, int h)
-		: TestItem{ i, AABB {x,y,w,h} } {}
-
-	std::string toString() const {
-        return to_string(i) + QuadTree<TestItem<ME, MD>, ME, MD>::QuadVal::get_box().toString();
-	};
+	TestVal(int i, AABB b)
+    : i { i }, box { b } {}
+    TestVal(TestVal&& v)
+    : i { std::move(v.i) }, box {std::move(v.box)}{
+        v.i = -1;
+        DEBUG("Moving TestVal\n");
+    }
+    
+    TestVal(const TestVal&) = delete;
+    TestVal& operator=(const TestVal&) = delete;
+    
+    const AABB& get_box() const {
+        return box;
+    }
+    
+    std::string toString() const {
+        return to_string(i) + box.toString();
+    }
 };
+
+template <int ME, int MD>
+class TestItem : public QuadTree<TestItem<ME, MD>, ME, MD>::QuadVal {
+    using node = typename QuadTree<TestItem<ME, MD>, ME, MD>::QuadNode;
+    using val = typename QuadTree<TestItem<ME, MD>, ME, MD>::QuadVal;
+private:
+    int i;
+    
+public:
+    TestItem(int i, AABB b)
+    : QuadTree<TestItem<ME, MD>, ME, MD>::QuadVal{b}, i{ i } {}
+    TestItem(int i, int x, int y, int w, int h)
+    : TestItem{ i, AABB {x,y,w,h} } {}
+    
+    std::string toString() const {
+        return to_string(i) + QuadTree<TestItem<ME, MD>, ME, MD>::QuadVal::get_box().toString();
+    };
+};
+
 
 int randint(int min, int max) {
 	static std::random_device r;
@@ -56,7 +84,7 @@ void renderQuadTree(
 	);
 
 	for (auto& val : n.get_values()) {
-		AABB box = val->get_box();
+		AABB box = val.get_box();
 		SDL_Rect rect{ box.get_x(), box.get_y(), box.get_w(), box.get_h() };
 		SDL_SetRenderDrawColor(r, ro, g, b, SDL_ALPHA_OPAQUE);
 		SDL_RenderDrawRect(
@@ -101,7 +129,7 @@ int main(int argc, char *argv[]) {
 	//constexpr int max_elts = 3;
 	//constexpr int max_depth = 5;
 
-	using Quad = QuadTree < TestItem<3, 5>, 3, 5 >;
+	using Quad = QuadTree < TestVal, 3, 5 >;
 	/*constexpr*/ Quad qt{ w, h };
 
 	/*cout << qt.toString() << endl;
@@ -122,25 +150,28 @@ int main(int argc, char *argv[]) {
 		SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-	SDL_RenderClear(renderer);
+//    SDL_RenderClear(renderer);
 
-	qt.insert(std::make_unique<TestItem<3, 5>>(0, 10, 10, 10, 10));
-	/*	qt.insert(std::make_unique<TestItem>(0, 550, 550, 10, 10));
-	qt.insert(std::make_unique<TestItem>(0, 550, 10, 10, 10));
-	qt.insert(std::make_unique<TestItem>(0, 550, 40, 10, 10));
-	qt.insert(std::make_unique<TestItem>(0, 550, 25, 10, 10));*/
-	renderQuadTree<TestItem<3, 5>, 3, 5>(renderer, qt.get_root());
+    TestVal v0 { 0, AABB { 10, 10, 10, 10 } };
+    cout << v0.i << endl;
+    qt.insert(std::move(v0));
+    cout << v0.i << endl;
+    qt.insert(TestVal { 1, AABB { 260, 260, 10, 10} });
+    qt.insert(TestVal { 2, AABB { 260, 10, 10, 10} });
+    qt.insert(TestVal { 3, AABB { 260, 40, 10, 10} });
+    qt.insert(TestVal { 4, AABB { 260, 25, 10, 10} });
+	renderQuadTree<TestVal, 3, 5>(renderer, qt.get_root());
 
 	cout << qt << endl;
 	SDL_RenderPresent(renderer);
 
-	while (true)
+	while (false)
 	{
 		SDL_Delay(1000);
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
 		SDL_RenderClear(renderer);
 		/*qt.insert(randItem(r, w, h));*/
-		renderQuadTree<TestItem<3, 5>, 3, 5>(renderer, qt.get_root());
+		renderQuadTree<TestVal, 3, 5>(renderer, qt.get_root());
 		SDL_RenderPresent(renderer);
 	}
 

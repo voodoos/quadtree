@@ -2,7 +2,8 @@
 
 #include <iostream>
 
-#ifdef _DEBUG
+#define D
+#if defined _DEBUG || defined D
 #  define DEBUG(x) do { std::cerr << x; } while (0)
 #else
 #  define DEBUG(x)
