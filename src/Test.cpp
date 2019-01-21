@@ -12,14 +12,14 @@
 
 using namespace std;
 
-
-class TestItem : public QuadTree<TestItem>::QuadVal {
+template<int ME, int MD>
+class TestItem : public QuadTree<TestItem<ME, MD>, ME, MD>::QuadVal {
 private:
 	int i;
 
 public:
 	TestItem(int i, AABB b)
-		: QuadTree<TestItem>::QuadVal{ b }, i{ i }{}
+		: QuadTree<TestItem, ME, MD>::QuadVal{ b }, i{ i }{}
 	TestItem(int i, int x, int y, int w, int h)
 		: TestItem{ i, AABB {x,y,w,h} } {}
 
@@ -36,10 +36,10 @@ int randint(int min, int max) {
 	return size_dist(e1);
 }
 
-template<typename T>
+template<typename T, int ME, int MD>
 void renderQuadTree(
 	SDL_Renderer* r,
-	const typename QuadTree<T>::QuadNode& n
+	const typename QuadTree<T, ME, MD>::QuadNode& n
 ) {
 	AABB box = n.get_box();
 	SDL_Rect rect{ box.get_x(), box.get_y(), box.get_w(), box.get_h() };
@@ -62,7 +62,7 @@ void renderQuadTree(
 	}
 
 	for (auto& child : n.get_children())
-		renderQuadTree<T>(r, child);
+		renderQuadTree<T, ME, MD>(r, child);
 
 }
 
@@ -97,8 +97,8 @@ int main(int argc, char *argv[]) {
 	constexpr int max_elts = 3;
 	constexpr int max_depth = 5;
 
-	using Quad = QuadTree<TestItem>;
-	/*constexpr*/ Quad qt{ w, h, max_elts, max_depth };
+	using Quad = QuadTree < TestItem<3, 5>, 3, 5 >;
+	/*constexpr*/ Quad qt{ w, h };
 
 	/*cout << qt.toString() << endl;
 	qt.insert(randItem(r, w, h));
@@ -120,12 +120,12 @@ int main(int argc, char *argv[]) {
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
 	SDL_RenderClear(renderer);
 
-	qt.insert(std::make_unique<TestItem>(0, 10, 10, 10, 10));
+	qt.insert(std::make_unique<TestItem<3, 5>>(0, 10, 10, 10, 10));
 	/*	qt.insert(std::make_unique<TestItem>(0, 550, 550, 10, 10));
 	qt.insert(std::make_unique<TestItem>(0, 550, 10, 10, 10));
 	qt.insert(std::make_unique<TestItem>(0, 550, 40, 10, 10));
 	qt.insert(std::make_unique<TestItem>(0, 550, 25, 10, 10));*/
-	renderQuadTree<TestItem>(renderer, qt.get_root());
+	renderQuadTree<TestItem<3, 5>, 3, 5>(renderer, qt.get_root());
 
 	cout << qt << endl;
 	SDL_RenderPresent(renderer);
@@ -136,7 +136,7 @@ int main(int argc, char *argv[]) {
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
 		SDL_RenderClear(renderer);
 		/*qt.insert(randItem(r, w, h));*/
-		renderQuadTree<TestItem>(renderer, qt.get_root());
+		renderQuadTree<TestItem<3, 5>, 3, 5>(renderer, qt.get_root());
 		SDL_RenderPresent(renderer);
 	}
 

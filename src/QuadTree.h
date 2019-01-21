@@ -12,7 +12,7 @@
 
 
 
-template <typename T>
+template <typename T, int MaxElts = 4, int MaxDepth = 10>
 /// requires T to have a bounding box
 class QuadTree
 {
@@ -28,11 +28,9 @@ public:
 private:
 	QuadNode root;
 public:
-	constexpr QuadTree(int, int, int = 3, int = 5);
+	QuadTree(int, int);
 	virtual ~QuadTree();
 
-	//const int& get_me() const;
-	//const int& get_md() const;
 	const QuadNode& get_root() const;
 	void insert(std::unique_ptr<T> elt);
 
@@ -43,8 +41,8 @@ public:
 /// Nested class QuadNode
 //////
 
-template <typename T>
-class QuadTree<T>::QuadNode
+template <typename T, int MaxElts, int MaxDepth>
+class QuadTree<T, MaxElts, MaxDepth>::QuadNode
 {
 	using eptr = std::unique_ptr<T>;
 private:
@@ -53,7 +51,7 @@ private:
 	int depth;
 
 	/// The node's bounding box
-	const AABB box;
+	AABB box;
 
 	/// A node without children is a leaf
 	std::forward_list <QuadNode> children{};
@@ -61,7 +59,7 @@ private:
 	short counter = 0;
 
 public:
-	constexpr QuadNode(int, int, int = 3, int = 4, int = 0);
+	QuadNode(AABB, int = 0);
 	virtual ~QuadNode();
 
 	int countChildren() const;
@@ -81,59 +79,57 @@ private:
 	void  dispatch(eptr& elt);
 	void  split_and_insert(eptr elt = nullptr);
 };
-
 using namespace std;
 using namespace std::literals::string_literals;
 
-template <typename T>
-constexpr QuadTree<T>::QuadNode::QuadNode(int w, int h, int me, int md, int d)
-	: box{ AABB{ 0,0,w,h } }, max_elements{ me }, max_depth{ md }, depth{ d }
+template <typename T, int ME, int MD>
+QuadTree<T, ME, MD>::QuadNode::QuadNode(AABB b, int d) : box{ b }, depth{ d }
 {
 }
 
-template <typename T>
-QuadTree<T>::QuadNode::~QuadNode()
+template <typename T, int ME, int MD>
+QuadTree<T, ME, MD>::QuadNode::~QuadNode()
 {
 }
 
-template <typename T>
-int QuadTree<T>::QuadNode::countChildren() const
+template <typename T, int ME, int MD>
+int QuadTree<T, ME, MD>::QuadNode::countChildren() const
 {
 	return distance(children.begin(), children.end());
 }
 
-template <typename T>
-bool QuadTree<T>::QuadNode::isLeaf() const
+template <typename T, int ME, int MD>
+bool QuadTree<T, ME, MD>::QuadNode::isLeaf() const
 {
 	return children.begin() == children.end();
 }
 
-template <typename T>
-const AABB & QuadTree<T>::QuadNode::get_box() const
+template <typename T, int ME, int MD>
+const AABB & QuadTree<T, ME, MD>::QuadNode::get_box() const
 {
 	return box;
 }
 
-template <typename T>
-const std::forward_list<typename QuadTree<T>::QuadNode>& QuadTree<T>::QuadNode::get_children() const
+template <typename T, int ME, int MD>
+const std::forward_list<typename QuadTree<T, ME, MD>::QuadNode>& QuadTree<T, ME, MD>::QuadNode::get_children() const
 {
 	return children;
 }
 
-template <typename T>
-const std::forward_list<typename QuadTree<T>::QuadNode::eptr>& QuadTree<T>::QuadNode::get_values() const
+template <typename T, int ME, int MD>
+const std::forward_list<typename QuadTree<T, ME, MD>::QuadNode::eptr>& QuadTree<T, ME, MD>::QuadNode::get_values() const
 {
 	return values;
 }
 
 
-template <typename T>
-void QuadTree<T>::QuadNode::insert(eptr elt)
+template <typename T, int ME, int MD>
+void QuadTree<T, ME, MD>::QuadNode::insert(eptr elt)
 {
 	DEBUG("Inserting " + elt->toString() + "\n");
-	if (isLeaf() && counter < max_elements) {
+	if (isLeaf() && counter < ME) {
 		force_insert(std::move(elt));
-		DEBUG("Elt " + to_string(counter) + "/" + to_string(max_elements) + ".\n");
+		DEBUG("Elt " + to_string(counter) + "/" + to_string(ME) + ".\n");
 	}
 	else {
 		// Split if needed
@@ -143,8 +139,8 @@ void QuadTree<T>::QuadNode::insert(eptr elt)
 	DEBUG("End of insertion\n");
 }
 
-template <typename T>
-string QuadTree<T>::QuadNode::toString(int indent) const {
+template <typename T, int ME, int MD>
+string QuadTree<T, ME, MD>::QuadNode::toString(int indent) const {
 	string vals = ""s;
 	for (auto& val : values) {
 		if (vals != ""s) vals += ", "s;
@@ -164,14 +160,14 @@ string QuadTree<T>::QuadNode::toString(int indent) const {
 	return "Node"s + (isLeaf() ? "(leaf)"s : ""s) + ", box"s + box.toString() + ", vals{"s + vals + "}"s + "\n"s + schild;
 }
 
-template <typename T>
-void QuadTree<T>::QuadNode::force_insert(eptr elt)
+template <typename T, int ME, int MD>
+void QuadTree<T, ME, MD>::QuadNode::force_insert(eptr elt)
 {
 	values.emplace_front(std::move(elt));
 	counter++;
 }
-template <typename T>
-void QuadTree<T>::QuadNode::dispatch(eptr& elt)
+template <typename T, int ME, int MD>
+void QuadTree<T, ME, MD>::QuadNode::dispatch(eptr& elt)
 {
 	AABB box = elt->get_box();
 
@@ -189,8 +185,8 @@ void QuadTree<T>::QuadNode::dispatch(eptr& elt)
 	}
 }
 
-template <typename T>
-void QuadTree<T>::QuadNode::split_and_insert(eptr elt)
+template <typename T, int ME, int MD>
+void QuadTree<T, ME, MD>::QuadNode::split_and_insert(eptr elt)
 {
 	// Only split leafs
 	if (isLeaf()) {
@@ -236,45 +232,33 @@ void QuadTree<T>::QuadNode::split_and_insert(eptr elt)
 /// QuadTree
 //////
 
-template<typename T>
-inline constexpr QuadTree<T>::QuadTree(int w, int h, int me, int md)
-	: root{ w, h, me, md } {
-	static_assert(md == 5, "Literal failed");
-}
-
-template <typename T>
-QuadTree<T>::~QuadTree()
+template<typename T, int MaxElts, int MaxDepth>
+inline QuadTree<T, MaxElts, MaxDepth>::QuadTree(int w, int h)
+	: root{ AABB{ 0,0,w,h } }
 {
 }
-/*
-template<typename T>
-inline const int & QuadTree<T>::get_me() const
+
+template <typename T, int ME, int MD>
+QuadTree<T, ME, MD>::~QuadTree()
 {
-	return max_elements;
 }
 
-template<typename T>
-inline const int & QuadTree<T>::get_md() const
-{
-	return max_depth;
-}*/
-
-template<typename T>
-const typename QuadTree<T>::QuadNode & QuadTree<T>::get_root() const
+template<typename T, int ME, int MD>
+const typename QuadTree<T, ME, MD>::QuadNode & QuadTree<T, ME, MD>::get_root() const
 {
 	return root;
 }
 
-template <typename T>
-void QuadTree<T>::insert(std::unique_ptr<T> elt) {
+template <typename T, int ME, int MD>
+void QuadTree<T, ME, MD>::insert(std::unique_ptr<T> elt) {
 	root.insert(std::move(elt));
 }
 
-template <typename T>
-std::string QuadTree<T>::toString() const {
+template <typename T, int ME, int MD>
+std::string QuadTree<T, ME, MD>::toString() const {
 	ostringstream  ss;
-	//ss << "Max elements per node: " << max_elements << endl;
-	//ss << "Max depth: " << max_depth << endl;
+	ss << "Max elements per node: " << ME << endl;
+	ss << "Max depth: " << MD << endl;
 	ss << root;
 	return ss.str();
 }

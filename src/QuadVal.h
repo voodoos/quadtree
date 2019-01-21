@@ -6,8 +6,8 @@
 /// A "model" class to guide the creation of 
 /// possible values for the QuadTree
 
-template <typename T>
-class QuadTree<T>::QuadVal
+template <typename T, int ME, int MD>
+class QuadTree<T, ME, MD>::QuadVal
 {
 private:
 	AABB box;
@@ -27,14 +27,14 @@ public:
 using namespace std;
 
 
-template <typename T>
-QuadTree<T>::QuadVal::QuadVal(/*T& v,*/ AABB b)
+template <typename T, int ME, int MD>
+QuadTree<T, ME, MD>::QuadVal::QuadVal(/*T& v,*/ AABB b)
 	: /*val{ v }, */box{
 	b
 } {}
 
 
-template <typename T>
-const AABB& QuadTree<T>::QuadVal::get_box() const {
+template <typename T, int ME, int MD>
+const AABB& QuadTree<T, ME, MD>::QuadVal::get_box() const {
 	return box;
 }
