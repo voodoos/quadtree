@@ -1,35 +1,40 @@
 #pragma once
 
+#include "AABB.h"
 #include "QuadTree.h"
-/*
+
+/// A "model" class to guide the creation of 
+/// possible values for the QuadTree
+
 template <typename T>
-class QuadVal
+class QuadTree<T>::QuadVal
 {
 private:
-	T value;
-	QuadTree<T, MaxElts, MaxDepth>::QuadNode& parent;
-
+	AABB box;
+	//typename QuadNode& host;
 public:
-	QuadVal(T);
-	~QuadVal();
+	QuadVal() = default;
+	QuadVal(/*T&,*/ AABB);
 
-	const AABB& getBox() const;
+	QuadVal(const QuadVal&) = delete;
+	QuadVal& operator=(const QuadVal&) = delete;
+	virtual ~QuadVal() = default;
+
+	const AABB& get_box() const;
+	virtual std::string toString() const = 0;
 };
 
-template <typename T, int MaxElts, int MaxDepth>
-QuadTree<T, MaxElts, MaxDepth>::QuadVal::QuadVal(T v)
-	: value{ v }
-{
-}
+using namespace std;
 
-template <typename T, int MaxElts, int MaxDepth>
-QuadTree<T, MaxElts, MaxDepth>::QuadVal::~QuadVal()
-{
-}
 
-template <typename T, int MaxElts, int MaxDepth>
-const AABB& QuadTree<T, MaxElts, MaxDepth>::QuadVal::getBox() const
-{
+template <typename T>
+QuadTree<T>::QuadVal::QuadVal(/*T& v,*/ AABB b)
+	: /*val{ v }, */box{
+	b
+} {}
+
+
+template <typename T>
+const AABB& QuadTree<T>::QuadVal::get_box() const {
 	return box;
 }
-*/
