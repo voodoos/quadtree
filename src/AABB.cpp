@@ -4,7 +4,7 @@ AABB::AABB() : AABB(0, 0, 0, 0)
 {
 }
 
-constexpr AABB::AABB(int x, int y, int w, int h)
+AABB::AABB(int x, int y, int w, int h)
 	: x{ x }, y{ y }, w{ w }, h{ h }
 {
 }

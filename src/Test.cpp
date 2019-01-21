@@ -23,7 +23,7 @@ private:
 
 public:
 	TestItem(int i, AABB b)
-		: i{ i } {}
+    : QuadTree<TestItem<ME, MD>, ME, MD>::QuadVal{b}, i{ i } {}
 	TestItem(int i, int x, int y, int w, int h)
 		: TestItem{ i, AABB {x,y,w,h} } {}
 
@@ -98,8 +98,8 @@ int main(int argc, char *argv[]) {
 
 	constexpr int w = 500;
 	constexpr int h = 500;
-	constexpr int max_elts = 3;
-	constexpr int max_depth = 5;
+	//constexpr int max_elts = 3;
+	//constexpr int max_depth = 5;
 
 	using Quad = QuadTree < TestItem<3, 5>, 3, 5 >;
 	/*constexpr*/ Quad qt{ w, h };

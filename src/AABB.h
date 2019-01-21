@@ -19,7 +19,7 @@ class AABB {
 
 public:
 	AABB();
-	constexpr AABB(int, int, int, int);
+	AABB(int, int, int, int);
 	int get_x() const;
 	int get_y() const;
 	int get_w() const;
