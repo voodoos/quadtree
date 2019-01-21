@@ -82,7 +82,7 @@ using namespace std;
 using namespace std::literals::string_literals;
 
 template <typename T, int ME, int MD>
-QuadTree<T, ME, MD>::QuadNode::QuadNode(AABB b, int d) : box{ b }, depth{ d }
+QuadTree<T, ME, MD>::QuadNode::QuadNode(AABB b, int d) : depth{ d }, box{ b }
 {
 }
 

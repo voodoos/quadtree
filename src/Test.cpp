@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "QuadTree.h"
+#include "QuadVal.h"
 #include "SDL.h"
 
 
@@ -27,7 +28,7 @@ public:
 		: TestItem{ i, AABB {x,y,w,h} } {}
 
 	std::string toString() const {
-		return to_string(i) + get_box().toString();
+        return to_string(i) + QuadTree<TestItem<ME, MD>, ME, MD>::QuadVal::get_box().toString();
 	};
 };
 
