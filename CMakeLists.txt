@@ -36,6 +36,4 @@ endif()
 
 # Libraries
 include_directories(${SDL2_INCLUDE_DIRS})
-
-message(${SDL2_INCLUDE_DIRS} pouezt ${SDL2_LIBRARIES} ${SDL2_LIBRARY})
 target_link_libraries(test  ${SDL2_LIBRARIES})
