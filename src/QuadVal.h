@@ -24,7 +24,7 @@ public:
 	virtual ~QuadVal() = default;
 
     
-    T&& get_val();
+    T&& move_val();
 	const AABB& get_box() const;
 	std::string toString() const;
     
@@ -35,7 +35,8 @@ using namespace std;
 
 template <typename T, int ME, int MD>
 QuadTree<T, ME, MD>::QuadVal::QuadVal(T&& v)
-: val{ std::move(v) } {}
+: val{ std::move(v) } {
+}
 
 template <typename T, int ME, int MD>
 QuadTree<T, ME, MD>::QuadVal::QuadVal(QuadVal&& v)
@@ -46,7 +47,7 @@ QuadTree<T, ME, MD>::QuadVal::QuadVal(QuadVal&& v)
 
 
 template <typename T, int ME, int MD>
-T&& QuadTree<T, ME, MD>::QuadVal::get_val() {
+T&& QuadTree<T, ME, MD>::QuadVal::move_val() {
     return std::move(val);
 }
 

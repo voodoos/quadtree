@@ -84,7 +84,7 @@ void renderQuadTree(
 	);
 
 	for (auto& val : n.get_values()) {
-		AABB box = val.get_box();
+		AABB box = val->get_box();
 		SDL_Rect rect{ box.get_x(), box.get_y(), box.get_w(), box.get_h() };
 		SDL_SetRenderDrawColor(r, ro, g, b, SDL_ALPHA_OPAQUE);
 		SDL_RenderDrawRect(
@@ -98,19 +98,19 @@ void renderQuadTree(
 
 }
 
-//std::unique_ptr<TestItem> randItem(std::random_device& r, int mx, int my) {
-//	static int i = 0;
-//	std::default_random_engine e1(r());
-//	// Random size:
-//	std::uniform_int_distribution size_dist(1, min(mx, min(my, 10)));
-//	int size = size_dist(e1);
-//
-//	std::uniform_int_distribution xy_dist(0, min(mx - size, my - size));
-//	int x = xy_dist(e1);
-//	int y = xy_dist(e1);
-//
-//	return std::make_unique<TestItem>(++i, x, y, size, size);
-//}
+TestVal randItem(std::random_device& r, int mx, int my) {
+    static int i = 0;
+    std::default_random_engine e1(r());
+    // Random size:
+    std::uniform_int_distribution size_dist(1, min(mx, min(my, 10)));
+    int size = size_dist(e1);
+
+    std::uniform_int_distribution xy_dist(0, min(mx - size, my - size));
+    int x = xy_dist(e1);
+    int y = xy_dist(e1);
+
+    return TestVal{++i, AABB{x, y, size, size}};
+}
 
 int main(int argc, char *argv[]) {
 	std::random_device r;
@@ -156,7 +156,7 @@ int main(int argc, char *argv[]) {
     cout << v0.i << endl;
     qt.insert(std::move(v0));
     cout << v0.i << endl;
-    qt.insert(TestVal { 1, AABB { 260, 260, 10, 10} });
+    qt.insert(TestVal { 1, AABB { 240, 240, 100, 100} });
     qt.insert(TestVal { 2, AABB { 260, 10, 10, 10} });
     qt.insert(TestVal { 3, AABB { 260, 40, 10, 10} });
     qt.insert(TestVal { 4, AABB { 260, 25, 10, 10} });
@@ -165,12 +165,12 @@ int main(int argc, char *argv[]) {
 	cout << qt << endl;
 	SDL_RenderPresent(renderer);
 
-	while (false)
+	while (true)
 	{
 		SDL_Delay(1000);
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
 		SDL_RenderClear(renderer);
-		/*qt.insert(randItem(r, w, h));*/
+		qt.insert(randItem(r, w, h));
 		renderQuadTree<TestVal, 3, 5>(renderer, qt.get_root());
 		SDL_RenderPresent(renderer);
 	}
