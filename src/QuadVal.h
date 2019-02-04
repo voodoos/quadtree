@@ -17,6 +17,7 @@ private:
 	QuadNode* host;
     
 public:
+    explicit QuadVal(T&&);
 	explicit QuadVal(T&&,  QuadNode&);
     QuadVal(QuadVal&&);
 
@@ -26,7 +27,7 @@ public:
 	virtual ~QuadVal() = default;
 
     
-    T&& move_val();
+    //T&& move_val();
 	const AABB& get_box() const;
 	std::string toString() const;
     bool moved() const;
@@ -34,6 +35,11 @@ public:
 };
 
 using namespace std;
+
+template <typename T, int ME, int MD>
+QuadTree<T, ME, MD>::QuadVal::QuadVal(T&& v)
+: val{ std::move(v) }, host { nullptr } {
+}
 
 
 template <typename T, int ME, int MD>
@@ -50,12 +56,13 @@ QuadTree<T, ME, MD>::QuadVal::QuadVal(QuadVal&& v)
     DEBUG("Moving QuadVal.\n");
 }
 
-
+/*
 template <typename T, int ME, int MD>
 T&& QuadTree<T, ME, MD>::QuadVal::move_val() {
     this->host = nullptr;
     return std::move(val);
 }
+ */
 
 template <typename T, int ME, int MD>
 const AABB& QuadTree<T, ME, MD>::QuadVal::get_box() const {

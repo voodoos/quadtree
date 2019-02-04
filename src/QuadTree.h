@@ -31,7 +31,9 @@ public:
 	virtual ~QuadTree();
 
 	const QuadNode& get_root() const;
-	void insert(T&& elt);
+    
+    void insert(const T& elt);   // Copy insert
+	void insert(T&& elt);       // Move insert
 
 	std::string toString() const;
 };
@@ -70,13 +72,13 @@ public:
 
 	std::string toString(int indent = 0) const;
 
-    void insert(T&& elt);
+    void insert(vals_t&& elt);
 
 private:
-	void  force_insert(T&& elt);
-	bool  dispatch(T&& elt);
+	void  force_insert(vals_t&& elt);
+	bool  dispatch(vals_t&& elt);
     //void  dispatch(val_t& elt);
-	void  split_and_insert(T&& elt);
+	void  split_and_insert(vals_t&& elt);
 };
 
 ////////////////////////////
@@ -148,30 +150,31 @@ string QuadTree<T, ME, MD>::QuadNode::toString(int indent) const
 }
 
 template <typename T, int ME, int MD>
-void QuadTree<T, ME, MD>::QuadNode::insert(T&& elt)
+void QuadTree<T, ME, MD>::QuadNode::insert(vals_t&& elt)
 {
     DEBUG("Insert " + elt.toString() + "\n");
+    //todo: move or forward ?
     if (isLeaf() && counter < ME) {
-        force_insert(std::forward<T>(elt));
+        force_insert(std::forward<QuadVal>(elt));
     }
     else {
         // Split if needed
-        split_and_insert(std::forward<T>(elt));
+        split_and_insert(std::forward<QuadVal>(elt));
         
     }
     DEBUG("End insert " + elt.toString() + "\n");
 }
 
 template <typename T, int ME, int MD>
-void QuadTree<T, ME, MD>::QuadNode::force_insert(T&& elt)
+void QuadTree<T, ME, MD>::QuadNode::force_insert(vals_t&& elt)
 {
-    values.emplace_front(QuadVal(std::move(elt), *this));
+    values.push_front(std::forward<vals_t>(elt));
     //values.push_front(QuadVal(std::forward<T>(elt)));
 	counter++;
 }
 
 template <typename T, int ME, int MD>
-bool QuadTree<T, ME, MD>::QuadNode::dispatch(T&& elt)
+bool QuadTree<T, ME, MD>::QuadNode::dispatch(vals_t&& elt)
 {
     DEBUG("Dispatch " + elt.toString() + "\n");
 	AABB box = elt.get_box();
@@ -179,7 +182,7 @@ bool QuadTree<T, ME, MD>::QuadNode::dispatch(T&& elt)
 	// Could be optimized
 	for (auto& child : children)
 		if (box.is_in(child.box)) {
-			child.insert(std::forward<T>(elt));
+			child.insert(std::forward<vals_t>(elt));
 			counter--;
             DEBUG("Dispatched " + elt.toString() + "\n");
             return true;
@@ -192,7 +195,7 @@ bool QuadTree<T, ME, MD>::QuadNode::dispatch(T&& elt)
 }
 
 template <typename T, int ME, int MD>
-void QuadTree<T, ME, MD>::QuadNode::split_and_insert(T&& elt)
+void QuadTree<T, ME, MD>::QuadNode::split_and_insert(vals_t&& elt)
 {
 	// Only split leafs
 	if (isLeaf()) {
@@ -222,7 +225,7 @@ void QuadTree<T, ME, MD>::QuadNode::split_and_insert(T&& elt)
 		// We try to dispatch elements from the list
             
 		for (auto& elt : values)
-            dispatch(std::forward<T>(elt.move_val()));
+            dispatch(std::forward<vals_t>(elt));
         
         //TODO the whole QuadVal / TestVal move thing feels clunky
 
@@ -230,7 +233,7 @@ void QuadTree<T, ME, MD>::QuadNode::split_and_insert(T&& elt)
 		values.remove_if([](QuadVal& qv){ return qv.moved(); });
 	}
     
-    dispatch(std::forward<T>(elt));
+    dispatch(std::forward<vals_t>(elt));
 }
 
 
@@ -256,9 +259,16 @@ const typename QuadTree<T, ME, MD>::QuadNode & QuadTree<T, ME, MD>::get_root() c
 }
 
 template <typename T, int ME, int MD>
+void QuadTree<T, ME, MD>::insert(const T& elt) {
+    static_assert(std::is_copy_constructible_v<T>,
+                  "T should copy-constructible did you forgot to move ?");
+    insert(T(elt));
+}
+
+template <typename T, int ME, int MD>
 void QuadTree<T, ME, MD>::insert(T&& elt) {
     // Perfect forwarding
-	root.insert(std::forward<T>(elt));
+	root.insert(QuadVal(std::forward<T>(elt)));
 }
 
 template <typename T, int ME, int MD>

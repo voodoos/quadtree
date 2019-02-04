@@ -155,6 +155,7 @@ int main(int argc, char *argv[]) {
     TestVal v0 { 0, AABB { 10, 10, 10, 10 } };
     cout << v0.i << endl;
     qt.insert(std::move(v0));
+    //qt.insert(v0);
     cout << v0.i << endl;
     qt.insert(TestVal { 1, AABB { 240, 240, 100, 100} });
     qt.insert(TestVal { 2, AABB { 260, 10, 10, 10} });
