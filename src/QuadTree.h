@@ -43,7 +43,7 @@ public:
 template <typename T, int MaxElts, int MaxDepth>
 class QuadTree<T, MaxElts, MaxDepth>::QuadNode
 {
-	using vals_t = std::unique_ptr<QuadVal>;
+	using vals_t = QuadVal;
 private:
 	int depth;
 
@@ -131,7 +131,7 @@ string QuadTree<T, ME, MD>::QuadNode::toString(int indent) const
 	string vals = ""s;
 	for (auto& val : values) {
 		if (vals != ""s) vals += ", "s;
-		vals += val->toString();
+		vals += val.toString();
 	}
 
 	// Showing child nodes with indent
@@ -165,7 +165,7 @@ void QuadTree<T, ME, MD>::QuadNode::insert(T&& elt)
 template <typename T, int ME, int MD>
 void QuadTree<T, ME, MD>::QuadNode::force_insert(T&& elt)
 {
-    values.emplace_front(std::make_unique<QuadVal>(std::move(elt)));
+    values.emplace_front(QuadVal(std::move(elt), *this));
     //values.push_front(QuadVal(std::forward<T>(elt)));
 	counter++;
 }
@@ -222,13 +222,12 @@ void QuadTree<T, ME, MD>::QuadNode::split_and_insert(T&& elt)
 		// We try to dispatch elements from the list
             
 		for (auto& elt : values)
-            if(dispatch(std::forward<T>(elt->move_val())))
-                elt = nullptr;
+            dispatch(std::forward<T>(elt.move_val()));
         
         //TODO the whole QuadVal / TestVal move thing feels clunky
 
 		// Elements succesfully dispatched will leave a nullptr
-		values.remove(nullptr);
+		values.remove_if([](QuadVal& qv){ return qv.moved(); });
 	}
     
     dispatch(std::forward<T>(elt));

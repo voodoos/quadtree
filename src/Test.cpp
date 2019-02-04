@@ -84,7 +84,7 @@ void renderQuadTree(
 	);
 
 	for (auto& val : n.get_values()) {
-		AABB box = val->get_box();
+		AABB box = val.get_box();
 		SDL_Rect rect{ box.get_x(), box.get_y(), box.get_w(), box.get_h() };
 		SDL_SetRenderDrawColor(r, ro, g, b, SDL_ALPHA_OPAQUE);
 		SDL_RenderDrawRect(

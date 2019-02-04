@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include "AABB.h"
 #include "QuadTree.h"
 #include "utils.h"
@@ -12,10 +14,10 @@ class QuadTree<T, ME, MD>::QuadVal
 {
 private:
     T val;
-	QuadNode* host = nullptr;
+	QuadNode* host;
     
 public:
-	explicit QuadVal(T&&);
+	explicit QuadVal(T&&,  QuadNode&);
     QuadVal(QuadVal&&);
 
     QuadVal() = default;
@@ -27,6 +29,7 @@ public:
     T&& move_val();
 	const AABB& get_box() const;
 	std::string toString() const;
+    bool moved() const;
     
 };
 
@@ -34,8 +37,10 @@ using namespace std;
 
 
 template <typename T, int ME, int MD>
-QuadTree<T, ME, MD>::QuadVal::QuadVal(T&& v)
-: val{ std::move(v) } {
+QuadTree<T, ME, MD>::QuadVal::QuadVal(
+    T&& v,
+    QuadNode& qn)
+: val{ std::move(v) }, host { &qn } {
 }
 
 template <typename T, int ME, int MD>
@@ -48,6 +53,7 @@ QuadTree<T, ME, MD>::QuadVal::QuadVal(QuadVal&& v)
 
 template <typename T, int ME, int MD>
 T&& QuadTree<T, ME, MD>::QuadVal::move_val() {
+    this->host = nullptr;
     return std::move(val);
 }
 
@@ -59,4 +65,9 @@ const AABB& QuadTree<T, ME, MD>::QuadVal::get_box() const {
 template <typename T, int ME, int MD>
 string QuadTree<T, ME, MD>::QuadVal::toString() const {
     return val.toString();
+}
+
+template <typename T, int ME, int MD>
+bool QuadTree<T, ME, MD>::QuadVal::moved() const {
+    return host == nullptr;
 }
