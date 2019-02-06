@@ -26,12 +26,12 @@ public:
 	QuadVal& operator=(const QuadVal&) = delete;
 	virtual ~QuadVal() = default;
 
+    void set_host(QuadNode&);
     
     //T&& move_val();
 	const AABB& get_box() const;
 	std::string toString() const;
     bool moved() const;
-    
 };
 
 using namespace std;
@@ -54,6 +54,11 @@ QuadTree<T, ME, MD>::QuadVal::QuadVal(QuadVal&& v)
 : val{ std::move(v.val) }, host {v.host} {
     v.host = nullptr;
     DEBUG("Moving QuadVal.\n");
+}
+
+template <typename T, int ME, int MD>
+void QuadTree<T, ME, MD>::QuadVal::set_host(QuadNode & h) {
+    host = &h;
 }
 
 /*

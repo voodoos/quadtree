@@ -63,6 +63,8 @@ public:
     
     QuadNode(const QuadNode&) = delete;
     QuadNode& operator=(const QuadNode&) = delete;
+    QuadNode(QuadNode&&) = delete;
+    QuadNode& operator=(QuadNode&&) = delete;
 
 	int countChildren() const;
 	bool isLeaf() const;
@@ -77,7 +79,6 @@ public:
 private:
 	void  force_insert(vals_t&& elt);
 	bool  dispatch(vals_t&& elt);
-    //void  dispatch(val_t& elt);
 	void  split_and_insert(vals_t&& elt);
 };
 
@@ -168,6 +169,7 @@ void QuadTree<T, ME, MD>::QuadNode::insert(vals_t&& elt)
 template <typename T, int ME, int MD>
 void QuadTree<T, ME, MD>::QuadNode::force_insert(vals_t&& elt)
 {
+    elt.set_host(*this);
     values.push_front(std::forward<vals_t>(elt));
     //values.push_front(QuadVal(std::forward<T>(elt)));
 	counter++;
@@ -187,9 +189,6 @@ bool QuadTree<T, ME, MD>::QuadNode::dispatch(vals_t&& elt)
             DEBUG("Dispatched " + elt.toString() + "\n");
             return true;
 		}
-
-	DEBUG("Element not fitting, inserted in parent\n");
-		//force_insert(std::move(elt));
     DEBUG("No dispatch " + elt.toString() + "\n");
     return false;
 }
@@ -223,17 +222,19 @@ void QuadTree<T, ME, MD>::QuadNode::split_and_insert(vals_t&& elt)
 		);
 
 		// We try to dispatch elements from the list
-            
 		for (auto& elt : values)
             dispatch(std::forward<vals_t>(elt));
         
         //TODO the whole QuadVal / TestVal move thing feels clunky
 
-		// Elements succesfully dispatched will leave a nullptr
-		values.remove_if([](QuadVal& qv){ return qv.moved(); });
+		// Elements succesfully dispatched will leave a moved QuadVal
+		values.remove_if([](vals_t& qv){ return qv.moved(); });
 	}
     
-    dispatch(std::forward<vals_t>(elt));
+    // We try to insert the element in the children
+    if(!dispatch(std::forward<vals_t>(elt)))
+        // if it fails we insert it here
+        force_insert(std::forward<vals_t>(elt));
 }
 
 

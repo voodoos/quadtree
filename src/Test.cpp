@@ -161,6 +161,7 @@ int main(int argc, char *argv[]) {
     qt.insert(TestVal { 2, AABB { 260, 10, 10, 10} });
     qt.insert(TestVal { 3, AABB { 260, 40, 10, 10} });
     qt.insert(TestVal { 4, AABB { 260, 25, 10, 10} });
+    qt.insert(TestVal { 5, AABB { 240, 240, 100, 100} });
 	renderQuadTree<TestVal, 3, 5>(renderer, qt.get_root());
 
 	cout << qt << endl;
