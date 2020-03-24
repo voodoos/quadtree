@@ -27,4 +27,15 @@ public:
 	std::string toString() const;
 
 	bool is_in(const AABB&) const;
+
+    friend bool operator==(const AABB&, const AABB&);
 };
+
+inline bool operator==(const AABB& lhs, const AABB& rhs){
+    return lhs.x == rhs.x && lhs.y == rhs.y &&
+    lhs.w == rhs.w && lhs.h == rhs.h ;
+}
+
+inline bool operator!=(const AABB& lhs, const AABB& rhs){
+    return !(lhs == rhs);
+}

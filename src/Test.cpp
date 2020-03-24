@@ -39,6 +39,10 @@ public:
     std::string toString() const {
         return to_string(i) + box.toString();
     }
+    
+    void update() {
+        cout << "Updating testval " << i << endl;
+    }
 };
 
 template <int ME, int MD>
@@ -165,11 +169,12 @@ int main(int argc, char *argv[]) {
 	renderQuadTree<TestVal, 3, 5>(renderer, qt.get_root());
 
 	cout << qt << endl;
+    qt.update();
 	SDL_RenderPresent(renderer);
 
 	while (true)
 	{
-		SDL_Delay(1000);
+		SDL_Delay(250);
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
 		SDL_RenderClear(renderer);
 		qt.insert(randItem(r, w, h));

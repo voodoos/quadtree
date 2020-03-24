@@ -27,8 +27,9 @@ public:
 	virtual ~QuadVal() = default;
 
     void set_host(QuadNode&);
+    void update();
     
-    //T&& move_val();
+    
 	const AABB& get_box() const;
 	std::string toString() const;
     bool moved() const;
@@ -61,13 +62,15 @@ void QuadTree<T, ME, MD>::QuadVal::set_host(QuadNode & h) {
     host = &h;
 }
 
-/*
 template <typename T, int ME, int MD>
-T&& QuadTree<T, ME, MD>::QuadVal::move_val() {
-    this->host = nullptr;
-    return std::move(val);
+void QuadTree<T, ME, MD>::QuadVal::update() {
+    const AABB before =  val.get_box();
+    val.update();
+    
+    // if it moved, we notify the host:
+    if(before != val.get_box())
+        host->recheck(*this);
 }
- */
 
 template <typename T, int ME, int MD>
 const AABB& QuadTree<T, ME, MD>::QuadVal::get_box() const {

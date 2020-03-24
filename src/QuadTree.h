@@ -33,7 +33,9 @@ public:
 	const QuadNode& get_root() const;
     
     void insert(const T& elt);   // Copy insert
-	void insert(T&& elt);       // Move insert
+	void insert(T&& elt);
+    
+    void update();// Move insert
 
 	std::string toString() const;
 };
@@ -75,6 +77,8 @@ public:
 	std::string toString(int indent = 0) const;
 
     void insert(vals_t&& elt);
+    void update();
+    void recheck(vals_t& elt);
 
 private:
 	void  force_insert(vals_t&& elt);
@@ -165,6 +169,24 @@ void QuadTree<T, ME, MD>::QuadNode::insert(vals_t&& elt)
     }
     DEBUG("End insert " + elt.toString() + "\n");
 }
+
+template <typename T, int ME, int MD>
+void QuadTree<T, ME, MD>::QuadNode::update()
+{
+    for(auto& v : values)
+        v.update();
+    
+    for(auto& n : children)
+        n.update();
+}
+
+template <typename T, int ME, int MD>
+void QuadTree<T, ME, MD>::QuadNode::recheck(vals_t& elt)
+{
+    DEBUG("Rechecking " + elt.toString());
+}
+
+
 
 template <typename T, int ME, int MD>
 void QuadTree<T, ME, MD>::QuadNode::force_insert(vals_t&& elt)
@@ -270,6 +292,11 @@ template <typename T, int ME, int MD>
 void QuadTree<T, ME, MD>::insert(T&& elt) {
     // Perfect forwarding
 	root.insert(QuadVal(std::forward<T>(elt)));
+}
+
+template <typename T, int ME, int MD>
+void QuadTree<T, ME, MD>::update() {
+    root.update();
 }
 
 template <typename T, int ME, int MD>
